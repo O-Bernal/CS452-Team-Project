@@ -11,24 +11,27 @@ export default function FitnessTracker() {
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  // LOAD FITNESS TASKS
+  // ✅ HOS09-style fetch on mount
   useEffect(() => {
-    fetch(`${API_BASE}/api/tasks`, {
-      credentials: "include",
-    })
-      .then(res => {
+    async function loadTasks() {
+      try {
+        const res = await fetch(`${API_BASE}/api/tasks`, {
+          credentials: "include",
+        });
+
         if (!res.ok) throw new Error("Failed to load fitness activities");
-        return res.json();
-      })
-      .then(data => {
+
+        const data = await res.json();
         setTasks(data.filter(t => t.category === "Fitness"));
-      })
-      .catch(() => {
+      } catch (err) {
         alert("Failed to load fitness activities.");
-      });
+      }
+    }
+
+    loadTasks();
   }, [API_BASE]);
 
-  // ADD FITNESS TASK
+  // ✅ HOS09-style add
   async function addTask(e) {
     e.preventDefault();
 
@@ -47,7 +50,7 @@ export default function FitnessTracker() {
         }),
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Add failed");
 
       const newTask = await res.json();
       setTasks([...tasks, newTask]);

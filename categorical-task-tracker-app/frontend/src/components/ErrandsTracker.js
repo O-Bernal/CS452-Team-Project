@@ -11,24 +11,27 @@ export default function ErrandsTracker() {
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  // LOAD ERRANDS
+  // ✅ HOS09-style fetch on mount
   useEffect(() => {
-    fetch(`${API_BASE}/api/tasks`, {
-      credentials: "include",
-    })
-      .then(res => {
+    async function loadTasks() {
+      try {
+        const res = await fetch(`${API_BASE}/api/tasks`, {
+          credentials: "include",
+        });
+
         if (!res.ok) throw new Error("Failed to load errands");
-        return res.json();
-      })
-      .then(data => {
+
+        const data = await res.json();
         setTasks(data.filter(t => t.category === "Errands"));
-      })
-      .catch(() => {
+      } catch (err) {
         alert("Failed to load errands.");
-      });
+      }
+    }
+
+    loadTasks();
   }, [API_BASE]);
 
-  // ADD ERRAND
+  // ✅ HOS09-style add
   async function addTask(e) {
     e.preventDefault();
 
@@ -47,7 +50,7 @@ export default function ErrandsTracker() {
         }),
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Add failed");
 
       const newTask = await res.json();
       setTasks([...tasks, newTask]);

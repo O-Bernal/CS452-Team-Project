@@ -5,18 +5,19 @@ import dotenv from "dotenv";
 
 import passport from "./auth/githubStrategy.mjs";
 import authRoutes from "./routes/auth.mjs";
+import taskRoutes from "./routes/tasks.mjs"; // ✅ ADD THIS
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-// ✅ Required for secure cookies behind a proxy (Codespaces)
+// Required for Codespaces HTTPS cookies
 app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // must match exactly
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
@@ -29,9 +30,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      // ✅ Codespaces is HTTPS, so secure cookies are correct
       secure: true,
-      // ✅ Cross-site cookie needed (frontend 3000 <> backend 5050)
       sameSite: "none",
     },
   })
@@ -40,7 +39,9 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// ✅ ROUTES
 app.use("/auth", authRoutes);
+app.use("/api/tasks", taskRoutes); // ✅ THIS FIXES EVERYTHING
 
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);

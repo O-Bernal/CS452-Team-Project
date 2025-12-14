@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../AuthContext";
 
@@ -10,15 +9,9 @@ export default function Navbar() {
       <span className="navbar-brand">Task Tracker</span>
 
       <div className="navbar-nav">
-        <Link className="nav-link" to="/">
-          Home
-        </Link>
-        <Link className="nav-link" to="/errands">
-          Errands
-        </Link>
-        <Link className="nav-link" to="/fitness">
-          Fitness
-        </Link>
+        <a className="nav-link" href="/">Home</a>
+        <a className="nav-link" href="/errands">Errands</a>
+        <a className="nav-link" href="/fitness">Fitness</a>
       </div>
 
       <div className="ms-auto">

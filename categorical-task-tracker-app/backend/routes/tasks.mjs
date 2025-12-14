@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
       startDate,
       startTime,
       endDate,
-      endTime
+      endTime,
     } = req.body;
 
     if (!title || !category) {
@@ -42,14 +42,11 @@ router.post("/", async (req, res) => {
       endDate: endDate || null,
       endTime: endTime || null,
       createdAt: new Date(),
-      history: [
-        { action: "created", timestamp: new Date() }
-      ]
+      history: [{ action: "created", timestamp: new Date() }],
     };
 
     const result = await db.collection("tasks").insertOne(task);
     res.status(201).json({ ...task, _id: result.insertedId });
-
   } catch (err) {
     console.error("POST /api/tasks failed:", err);
     res.status(500).json({ error: err.message });
