@@ -11,64 +11,82 @@ export default function ErrandsTracker() {
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  // ✅ HOS09-style fetch on mount
+  // EDIT STATE
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
+  // LOAD TASKS
   useEffect(() => {
-    async function loadTasks() {
-      try {
-        const res = await fetch(`${API_BASE}/api/tasks`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to load errands");
-
-        const data = await res.json();
-        setTasks(data.filter(t => t.category === "Errands"));
-      } catch (err) {
-        alert("Failed to load errands.");
-      }
-    }
-
-    loadTasks();
+    fetch(`${API_BASE}/api/tasks`, {
+      credentials: "include",
+    })
+      .then(res => res.json())
+      .then(data =>
+        setTasks(data.filter(t => t.category === "Errands"))
+      )
+      .catch(err => console.error(err));
   }, [API_BASE]);
 
-  // ✅ HOS09-style add
+  // ADD TASK
   async function addTask(e) {
     e.preventDefault();
 
-    try {
-      const res = await fetch(`${API_BASE}/api/tasks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          title,
-          category: "Errands",
-          startDate,
-          startTime,
-          endDate,
-          endTime,
-        }),
-      });
+    const res = await fetch(`${API_BASE}/api/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        title,
+        category: "Errands",
+        startDate,
+        startTime,
+        endDate,
+        endTime,
+      }),
+    });
 
-      if (!res.ok) throw new Error("Add failed");
+    const newTask = await res.json();
+    setTasks([...tasks, newTask]);
 
-      const newTask = await res.json();
-      setTasks([...tasks, newTask]);
+    setTitle("");
+    setStartDate("");
+    setStartTime("");
+    setEndDate("");
+    setEndTime("");
+  }
 
-      setTitle("");
-      setStartDate("");
-      setStartTime("");
-      setEndDate("");
-      setEndTime("");
-    } catch {
-      alert("Failed to add task");
-    }
+  // DELETE TASK
+  async function deleteTask(id) {
+    await fetch(`${API_BASE}/api/tasks/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    setTasks(tasks.filter(t => t._id !== id));
+  }
+
+  // START EDIT
+  function startEdit(task) {
+    setEditingId(task._id);
+    setEditingTitle(task.title);
+  }
+
+  // SAVE EDIT (frontend-only update for now)
+  function saveEdit(id) {
+    setTasks(
+      tasks.map(t =>
+        t._id === id ? { ...t, title: editingTitle } : t
+      )
+    );
+    setEditingId(null);
+    setEditingTitle("");
   }
 
   return (
     <div className="container mt-4">
       <h2>Errand</h2>
 
+      {/* ADD FORM */}
       <form onSubmit={addTask} className="mb-4">
         <input
           className="form-control mb-2"
@@ -121,10 +139,46 @@ export default function ErrandsTracker() {
         <button className="btn btn-primary">Add Task</button>
       </form>
 
+      {/* TASK LIST */}
       <ul className="list-group">
-        {tasks.map(t => (
-          <li key={t._id} className="list-group-item">
-            {t.title}
+        {tasks.map(task => (
+          <li
+            key={task._id}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
+            {editingId === task._id ? (
+              <>
+                <input
+                  className="form-control me-2"
+                  value={editingTitle}
+                  onChange={e => setEditingTitle(e.target.value)}
+                />
+                <button
+                  className="btn btn-success btn-sm me-2"
+                  onClick={() => saveEdit(task._id)}
+                >
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <span>{task.title}</span>
+                <div>
+                  <button
+                    className="btn btn-sm btn-outline-secondary me-2"
+                    onClick={() => startEdit(task)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => deleteTask(task._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </li>
         ))}
       </ul>
